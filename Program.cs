@@ -34,6 +34,7 @@ namespace homefinderYad2
     class yad2Layer
     {
         private const string yad2Api = "http://www.yad2.co.il/ajax/Nadlan/searchMap/results.php";
+        private bool firstRun = true;
         private HttpWebRequest web;
         private List<string> parametersCollection=null;
         private List<homeClass> cache=null;
@@ -44,7 +45,9 @@ namespace homefinderYad2
         private void buildParams()
         {
             parametersCollection = new List<string>();
-            parametersCollection.Add("?SubCatID=2&AreaID=&City=&HomeTypeID=&fromRooms=2.5&untilRooms=3.5&fromPrice=&untilPrice=7500&PriceType=1&FromFloor=1&ToFloor=&fromSquareMeter=65&untilSquareMeter=&EnterDate=&Info=&coords%5Btop%5D%5Blat%5D=32.0812407485499&coords%5Btop%5D%5Blng%5D=34.76860038936138&coords%5Bbottom%5D%5Blat%5D=32.063020925819046&coords%5Bbottom%5D%5Blng%5D=34.76860038936138&coords%5Bright%5D%5Blat%5D=32.07213038336747&coords%5Bright%5D%5Blng%5D=34.77935106571829&coords%5Bleft%5D%5Blat%5D=32.07213038336747&coords%5Bleft%5D%5Blng%5D=34.757849713004475&radius=1012.9759260172019&centerCoords%5Blat%5D=32.072130837184474&centerCoords%5Blng%5D=34.76860038936138&searchMode=radius&_="+ (int)getUnixTimeNow());
+            //parametersCollection.Add("?SubCatID=2&AreaID=&City=&HomeTypeID=&fromRooms=2.5&untilRooms=3.5&fromPrice=&untilPrice=7500&PriceType=1&FromFloor=1&ToFloor=&fromSquareMeter=65&untilSquareMeter=&EnterDate=&Info=&coords%5Btop%5D%5Blat%5D=32.0812407485499&coords%5Btop%5D%5Blng%5D=34.76860038936138&coords%5Bbottom%5D%5Blat%5D=32.063020925819046&coords%5Bbottom%5D%5Blng%5D=34.76860038936138&coords%5Bright%5D%5Blat%5D=32.07213038336747&coords%5Bright%5D%5Blng%5D=34.77935106571829&coords%5Bleft%5D%5Blat%5D=32.07213038336747&coords%5Bleft%5D%5Blng%5D=34.757849713004475&radius=1012.9759260172019&centerCoords%5Blat%5D=32.072130837184474&centerCoords%5Blng%5D=34.76860038936138&searchMode=radius&_="+ (int)getUnixTimeNow());
+            parametersCollection.Add("?SubCatID=2&AreaID=1&City=&HomeTypeID=&fromRooms=2.5&untilRooms=&fromPrice=&untilPrice=8200&PriceType=1&FromFloor=&ToFloor=&EnterDate=&Info=&coords%5Btop%5D%5Blat%5D=32.077102311118544&coords%5Btop%5D%5Blng%5D=34.76807611310505&coords%5Bbottom%5D%5Blat%5D=32.06465515128003&coords%5Bbottom%5D%5Blng%5D=34.76807611310505&coords%5Bright%5D%5Blat%5D=32.070878519406136&coords%5Bright%5D%5Blng%5D=34.77542050700049&coords%5Bleft%5D%5Blat%5D=32.070878519406136&coords%5Bleft%5D%5Blng%5D=34.760731719209616&radius=692.0305125887065&centerCoords%5Blat%5D=32.070878731199294&centerCoords%5Blng%5D=34.76807611310505&searchMode=radius&_=" + (int)getUnixTimeNow());
+            parametersCollection.Add("?SubCatID=2&AreaID=1&City=&HomeTypeID=&fromRooms=2.5&untilRooms=&fromPrice=&untilPrice=8200&PriceType=1&FromFloor=&ToFloor=&EnterDate=&Info=&coords%5Btop%5D%5Blat%5D=32.09144237371608&coords%5Btop%5D%5Blng%5D=34.76313625025796&coords%5Bbottom%5D%5Blat%5D=32.06837841287437&coords%5Bbottom%5D%5Blng%5D=34.76313625025796&coords%5Bright%5D%5Blat%5D=32.07990966586507&coords%5Bright%5D%5Blng%5D=34.7767463869809&coords%5Bleft%5D%5Blat%5D=32.07990966586507&coords%5Bleft%5D%5Blng%5D=34.74952611353501&radius=1282.2977169630556&centerCoords%5Blat%5D=32.07991039329522&centerCoords%5Blng%5D=34.76313625025796&searchMode=radius&_=" + (int)getUnixTimeNow());
         }
         private double getUnixTimeNow() {
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -60,10 +63,11 @@ namespace homefinderYad2
                 web.Headers.Add(HttpRequestHeader.AcceptLanguage, "en-US,en;q=0.8,tr;q=0.6,he;q=0.4");
                 web.Accept = "application/json; q=0.01";
                 web.UserAgent= "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36";
-                web.Referer= @"http://www.yad2.co.il/Nadlan/rentMap.php?AreaID=&City=&HomeTypeID=&fromRooms=2.5&untilRooms=3.5&fromPrice=&untilPrice=7500&PriceType=1&FromFloor=1&ToFloor=&fromSquareMeter=65&untilSquareMeter=&EnterDate=&Info=";
+                web.Timeout = 100000;
+                //web.Referer= @"http://www.yad2.co.il/Nadlan/rentMap.php?AreaID=&City=&HomeTypeID=&fromRooms=2.5&untilRooms=3.5&fromPrice=&untilPrice=7500&PriceType=1&FromFloor=1&ToFloor=&fromSquareMeter=65&untilSquareMeter=&EnterDate=&Info=";
 
                 HttpWebResponse response = (HttpWebResponse)web.GetResponse();
-                Console.WriteLine("request sent. Time: "+DateTime.Now.ToString());
+                Console.WriteLine("request sent. Area : "+parametersCollection.IndexOf(param)+" Time: "+DateTime.Now.ToString());
                 Stream dataStream = response.GetResponseStream();
                 StreamReader reader = new StreamReader(dataStream, Encoding.GetEncoding(response.CharacterSet));
                 string responseFromServer = reader.ReadToEnd();
@@ -74,11 +78,15 @@ namespace homefinderYad2
                 {
                     Console.WriteLine(newhouses.Count + " new houses found");
                 }
-                result.AddRange(newhouses);
+                if (!firstRun)
+                {
+                    result.AddRange(newhouses);
+                }
                 reader.Close();
                 dataStream.Close();
                 response.Close();
             }
+            firstRun = false;
             return result;
             
         }
@@ -128,8 +136,16 @@ namespace homefinderYad2
             {
                 result = houses.Where(x => !cache.Any(y => x.PostNo == y.PostNo)).ToList<homeClass>();
                 cache.AddRange(result);
+                result.AddRange(houses.Where(x => replaceRecordInCacheIfNeed(x)).ToList());
             }
             return result;
+        }
+        private bool replaceRecordInCacheIfNeed(homeClass newHouse)
+        {
+            var oldHouses = cache.Where(y => (y.PostNo == newHouse.PostNo) && (y.Street != newHouse.Street)).ToList();
+            oldHouses.ForEach(x => cache.Remove(x));
+            cache.Add(newHouse);
+            return oldHouses.Count() > 0;
         }
     }
     public struct homeClass
