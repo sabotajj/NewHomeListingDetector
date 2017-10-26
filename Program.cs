@@ -19,13 +19,22 @@ namespace homefinderYad2
             yad2Layer yad2 = new yad2Layer();
             while (true)
             {
-                var newHouses = yad2.main();
+                var newHouses = new List<homeClass>();
+                try
+                {
+                    newHouses = yad2.main();
+                }
+                catch
+                {
+
+                }
                 foreach (var house in newHouses)
                 {
                     mailwrapper mailer = new mailwrapper();
                     mailer.sendMail(house);
 
                 }
+                newHouses = null;
                 Thread.Sleep(120000);
             }
 
@@ -35,7 +44,7 @@ namespace homefinderYad2
     {
         private const string yad2Api = "http://www.yad2.co.il/ajax/Nadlan/searchMap/results.php";
         private bool firstRun = true;
-        private HttpWebRequest web;
+        
         private List<string> parametersCollection=null;
         private List<homeClass> cache=null;
         public yad2Layer()
@@ -58,7 +67,8 @@ namespace homefinderYad2
             var result = new List<homeClass>();
             foreach (var param in parametersCollection)
             {
-                web = WebRequest.CreateHttp(yad2Api +param);
+
+                var web = WebRequest.CreateHttp(yad2Api + param);
                 //web.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
                 web.Headers.Add(HttpRequestHeader.AcceptLanguage, "en-US,en;q=0.8,tr;q=0.6,he;q=0.4");
                 web.Accept = "application/json; q=0.01";
@@ -85,6 +95,7 @@ namespace homefinderYad2
                 reader.Close();
                 dataStream.Close();
                 response.Close();
+                web = null;
             }
             firstRun = false;
             return result;
@@ -123,6 +134,7 @@ namespace homefinderYad2
                     resultList.Add(newhome);
                 }
             }
+            result = null;
             return resultList;
         }
         private List<homeClass> returnNewHouses(List<homeClass> houses)
@@ -135,17 +147,27 @@ namespace homefinderYad2
             else
             {
                 result = houses.Where(x => !cache.Any(y => x.PostNo == y.PostNo)).ToList<homeClass>();
-                cache.AddRange(result);
-                result.AddRange(houses.Where(x => replaceRecordInCacheIfNeed(x)).ToList());
+                if (result.Count > 0)
+                {
+                    cache.AddRange(result);
+                }
+                var updatedHouses = houses.Where(x => replaceRecordInCacheIfNeed(x)).ToList();
+                if (updatedHouses.Count > 0) {
+                    result.AddRange(updatedHouses);
+                }
             }
             return result;
         }
         private bool replaceRecordInCacheIfNeed(homeClass newHouse)
         {
             var oldHouses = cache.Where(y => (y.PostNo == newHouse.PostNo) && (y.Street != newHouse.Street)).ToList();
-            oldHouses.ForEach(x => cache.Remove(x));
-            cache.Add(newHouse);
-            return oldHouses.Count() > 0;
+            int oldHouseCount = oldHouses.Count;
+            if (oldHouseCount > 0)
+            {
+                oldHouses.ForEach(x => cache.Remove(x));
+                cache.Add(newHouse);
+            }
+            return oldHouseCount > 0;
         }
     }
     public struct homeClass
