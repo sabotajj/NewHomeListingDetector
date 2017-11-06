@@ -58,6 +58,7 @@ namespace homefinderYad2
             parametersCollection.Add("?SubCatID=2&AreaID=1&City=&HomeTypeID=&fromRooms=2.5&untilRooms=&fromPrice=&untilPrice=8500&PriceType=1&FromFloor=&ToFloor=&EnterDate=&Info=&coords%5Btop%5D%5Blat%5D=32.077102311118544&coords%5Btop%5D%5Blng%5D=34.76807611310505&coords%5Bbottom%5D%5Blat%5D=32.06465515128003&coords%5Bbottom%5D%5Blng%5D=34.76807611310505&coords%5Bright%5D%5Blat%5D=32.070878519406136&coords%5Bright%5D%5Blng%5D=34.77542050700049&coords%5Bleft%5D%5Blat%5D=32.070878519406136&coords%5Bleft%5D%5Blng%5D=34.760731719209616&radius=692.0305125887065&centerCoords%5Blat%5D=32.070878731199294&centerCoords%5Blng%5D=34.76807611310505&searchMode=radius&_=" + (int)getUnixTimeNow());
             parametersCollection.Add("?SubCatID=2&AreaID=1&City=&HomeTypeID=&fromRooms=2.5&untilRooms=&fromPrice=&untilPrice=8500&PriceType=1&FromFloor=&ToFloor=&EnterDate=&Info=&coords%5Btop%5D%5Blat%5D=32.09144237371608&coords%5Btop%5D%5Blng%5D=34.76313625025796&coords%5Bbottom%5D%5Blat%5D=32.06837841287437&coords%5Bbottom%5D%5Blng%5D=34.76313625025796&coords%5Bright%5D%5Blat%5D=32.07990966586507&coords%5Bright%5D%5Blng%5D=34.7767463869809&coords%5Bleft%5D%5Blat%5D=32.07990966586507&coords%5Bleft%5D%5Blng%5D=34.74952611353501&radius=1282.2977169630556&centerCoords%5Blat%5D=32.07991039329522&centerCoords%5Blng%5D=34.76313625025796&searchMode=radius&_=" + (int)getUnixTimeNow());
             cache = new List<List<homeClass>>(parametersCollection.Count);
+            parametersCollection.ForEach(param => cache.Add(new List<homeClass>()));
         }
         private double getUnixTimeNow() {
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -141,7 +142,7 @@ namespace homefinderYad2
         private List<homeClass> returnNewHouses(List<homeClass> houses,int paramIndex)
         {
             List<homeClass> result = new List<homeClass>();
-            if(cache[paramIndex] == null)
+            if(cache[paramIndex].Count == 0)
             {
 
                 cache[paramIndex] = houses;
