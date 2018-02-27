@@ -59,6 +59,17 @@ namespace homefinderYad2
         {
             buildParams();
         }
+        public string getHouseUrl(homeClass home)
+        {
+            if (!home.isTivuh)
+            {
+                return "http://www.yad2.co.il/Nadlan/rent_info.php?NadlanID=" + home.PostNo;
+            }
+            else
+            {
+                return "http://www.yad2.co.il/Nadlan/tivrent_info.php?NadlanID=" + home.PostNo;
+            }
+        }
         private void buildParams()
         {
             parametersCollection = new List<ParameterClass>();
@@ -68,6 +79,8 @@ namespace homefinderYad2
             parametersCollection.Add(new ParameterClass() { parameterString = "?SubCatID=2&AreaID=1&City=&HomeTypeID=&fromRooms=2.5&untilRooms=&fromPrice=&untilPrice=8000&PriceType=1&FromFloor=&ToFloor=&EnterDate=&Info=&coords%5Btop%5D%5Blat%5D=32.09836336922085&coords%5Btop%5D%5Blng%5D=34.78850276760102&coords%5Bbottom%5D%5Blat%5D=32.08717432640638&coords%5Bbottom%5D%5Blng%5D=34.78850276760102&coords%5Bright%5D%5Blat%5D=32.092768676526&coords%5Bright%5D%5Blng%5D=34.7951063962189&coords%5Bleft%5D%5Blat%5D=32.092768676526&coords%5Bleft%5D%5Blng%5D=34.781899138983135&radius=622.0823974889346&centerCoords%5Blat%5D=32.09276884781361&centerCoords%5Blng%5D=34.78850276760102&searchMode=radius&_=" + (int)getUnixTimeNow(), parameterOwnerEmail = "ketty.slonimsky@gmail.com,sabih.erdemanar@gmail.com" });
             parametersCollection.Add(new ParameterClass() { parameterString = "?SubCatID=2&AreaID=1&City=&HomeTypeID=&fromRooms=2.5&untilRooms=&fromPrice=&untilPrice=8000&PriceType=1&FromFloor=&ToFloor=&EnterDate=&Info=&coords%5Btop%5D%5Blat%5D=32.09938851458584&coords%5Btop%5D%5Blng%5D=34.77976681283917&coords%5Bbottom%5D%5Blat%5D=32.07739732808628&coords%5Bbottom%5D%5Blng%5D=34.77976681283917&coords%5Bright%5D%5Blat%5D=32.08839225978448&coords%5Bright%5D%5Blng%5D=34.79274510558571&coords%5Bleft%5D%5Blat%5D=32.08839225978448&coords%5Bleft%5D%5Blng%5D=34.76678852009263&radius=1222.6541848221752&centerCoords%5Blat%5D=32.08839292133607&centerCoords%5Blng%5D=34.77976681283917&searchMode=radius&_=" + (int)getUnixTimeNow(), parameterOwnerEmail = "ketty.slonimsky@gmail.com,sabih.erdemanar@gmail.com" });
             parametersCollection.Add(new ParameterClass() { parameterString = "?SubCatID=2&AreaID=1&City=&HomeTypeID=&fromRooms=2.5&untilRooms=&fromPrice=&untilPrice=8000&PriceType=1&FromFloor=&ToFloor=&EnterDate=&Info=&coords%5Btop%5D%5Blat%5D=32.100488733295784&coords%5Btop%5D%5Blng%5D=34.77999077729169&coords%5Bbottom%5D%5Blat%5D=32.077244487396186&coords%5Bbottom%5D%5Blng%5D=34.77999077729169&coords%5Bright%5D%5Blat%5D=32.08886587124244&coords%5Bright%5D%5Blng%5D=34.793708645202855&coords%5Bleft%5D%5Blat%5D=32.08886587124244&coords%5Bleft%5D%5Blng%5D=34.76627290938052&radius=1292.3211088564356&centerCoords%5Blat%5D=32.08886661034598&centerCoords%5Blng%5D=34.77999077729169&searchMode=radius&_=" + (int)getUnixTimeNow(), parameterOwnerEmail = "ketty.slonimsky@gmail.com,sabih.erdemanar@gmail.com" });
+            parametersCollection.Add(new ParameterClass() { parameterString = "?SubCatID=2&AreaID=&City=&HomeTypeID=&fromRooms=2.5&untilRooms=3.5&fromPrice=6000&untilPrice=8000&PriceType=1&FromFloor=&ToFloor=&EnterDate=&Info=&coords%5Btop%5D%5Blat%5D=32.09870724446947&coords%5Btop%5D%5Blng%5D=34.78892829263236&coords%5Bbottom%5D%5Blat%5D=32.08800745216178&coords%5Bbottom%5D%5Blng%5D=34.78892829263236&coords%5Bright%5D%5Blat%5D=32.09335719167635&coords%5Bright%5D%5Blng%5D=34.795243212595096&coords%5Bleft%5D%5Blat%5D=32.09335719167635&coords%5Bleft%5D%5Blng%5D=34.78261337266963&radius=594.8813103834988&centerCoords%5Blat%5D=32.09335734831563&centerCoords%5Blng%5D=34.78892829263236&searchMode=radius&_=" + (int)getUnixTimeNow(), parameterOwnerEmail = "ketty.slonimsky@gmail.com,sabih.erdemanar@gmail.com" });
+
             //parametersCollection.Add(parameter2);
             cache = new List<List<homeClass>>(parametersCollection.Count);
             parametersCollection.ForEach(param => cache.Add(new List<homeClass>()));
@@ -242,14 +255,7 @@ namespace homefinderYad2
         }
         private string createBody(homeClass home)
         {
-            if (!home.isTivuh)
-            {
-                return @"new home in " + home.Neighborhood + ".Address:" + home.Street + ".Price:" + home.Price + ". Link:" + "http://www.yad2.co.il/Nadlan/rent_info.php?NadlanID=" + home.PostNo;
-            }
-            else
-            {
-                return @"new home in " + home.Neighborhood + ".Address:" + home.Street + ".Price:" + home.Price + ". Link:" + "http://www.yad2.co.il/Nadlan/tivrent_info.php?NadlanID=" + home.PostNo;
-            }
+                return @"new home in " + home.Neighborhood + ".Address:" + home.Street + ".Price:" + home.Price + ". Link:" + new yad2Layer().getHouseUrl(home);
         }
     }
     class EqualityParity : IEqualityComparer<homeClass>
