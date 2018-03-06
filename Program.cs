@@ -7,8 +7,10 @@ using System.Threading;
 using System.Net;
 using System.Collections;
 using System.IO;
+
 using Newtonsoft.Json;
 using System.Net.Mail;
+
 
 namespace homefinderYad2
 {
@@ -17,12 +19,15 @@ namespace homefinderYad2
         static void Main(string[] args)
         {
             yad2Layer yad2 = new yad2Layer();
+            Console.WriteLine("Continue from previous state?(y/n)");
+            string answer = Console.ReadLine();
+            bool useCache = answer == "y" ? true : false;
             while (true)
             {
                 var newHouses = new List<homeClass>();
                 try
                 {
-                    newHouses = yad2.main();
+                    newHouses = yad2.main(useCache);
                 }
                 catch(Exception ex)
                 {
@@ -61,12 +66,43 @@ namespace homefinderYad2
         private const int betweenWait = 60000;
         public const int periodWait = 1200000;
         private bool firstRun = true;
+        private const string tmpFile="yad2tmp.cache";
         
         private List<ParameterClass> parametersCollection=null;
         private List<List<homeClass>> cache = null;
         public yad2Layer()
         {
             buildParams();
+        }
+        public void readCacheFromDisk()
+        {
+            cache = new List<List<homeClass>>(parametersCollection.Count);
+            try
+            {
+                string cacheString = File.ReadAllText(tmpFile);
+
+                dynamic _cache = JsonConvert.DeserializeObject(cacheString);
+                foreach (Newtonsoft.Json.Linq.JArray singleCache in _cache)
+                {
+                    cache.Add(singleCache.ToObject<List<homeClass>>());
+                }
+            }
+            catch (Exception ex)
+            {
+                //ignore
+            }
+            if (cache == null || cache.Count != parametersCollection.Count)
+            {
+                cache = new List<List<homeClass>>(parametersCollection.Count);
+                parametersCollection.ForEach(param => cache.Add(new List<homeClass>()));
+            }
+
+
+        }
+        public void writeCacheToDisk()
+        {
+            string cacheString = JsonConvert.SerializeObject(cache);
+            File.WriteAllText(tmpFile, cacheString);
         }
         public string getHouseUrl(homeClass home)
         {
@@ -91,8 +127,7 @@ namespace homefinderYad2
             parametersCollection.Add(new ParameterClass() { minMeter = 73, parameterString = "?SubCatID=2&AreaID=&City=&HomeTypeID=&fromRooms=2.5&untilRooms=3.5&fromPrice=6000&untilPrice=8200&PriceType=1&FromFloor=&ToFloor=&EnterDate=&Info=&coords%5Btop%5D%5Blat%5D=32.09870724446947&coords%5Btop%5D%5Blng%5D=34.78892829263236&coords%5Bbottom%5D%5Blat%5D=32.08800745216178&coords%5Bbottom%5D%5Blng%5D=34.78892829263236&coords%5Bright%5D%5Blat%5D=32.09335719167635&coords%5Bright%5D%5Blng%5D=34.795243212595096&coords%5Bleft%5D%5Blat%5D=32.09335719167635&coords%5Bleft%5D%5Blng%5D=34.78261337266963&radius=594.8813103834988&centerCoords%5Blat%5D=32.09335734831563&centerCoords%5Blng%5D=34.78892829263236&searchMode=radius&_=" + (int)getUnixTimeNow(), parameterOwnerEmail = "ketty.slonimsky@gmail.com,sabih.erdemanar@gmail.com" });
 
             //parametersCollection.Add(parameter2);
-            cache = new List<List<homeClass>>(parametersCollection.Count);
-            parametersCollection.ForEach(param => cache.Add(new List<homeClass>()));
+            
         }
         private double getUnixTimeNow() {
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -119,9 +154,13 @@ namespace homefinderYad2
 
         }
         
-        public List<homeClass> main()
+        public List<homeClass> main(bool useCache = false)
         {
             var result = new List<homeClass>();
+            if (useCache)
+            {
+                this.readCacheFromDisk();
+            }
             foreach (var param in parametersCollection)
             {
 
@@ -150,7 +189,7 @@ namespace homefinderYad2
                 {
                     Console.WriteLine(newhouses.Count + " new houses found");
                 }
-                if (!firstRun)
+                if (!(firstRun||useCache))
                 {
                     result.AddRange(newhouses);
                 }
@@ -161,6 +200,7 @@ namespace homefinderYad2
                 Thread.Sleep(betweenWait);
             }
             firstRun = false;
+            this.writeCacheToDisk();
             return result;
             
         }
