@@ -38,7 +38,7 @@ namespace homefinderYad2
 
                 }
                 newHouses = null;
-                Thread.Sleep(120000);
+                Thread.Sleep(yad2Layer.periodWait);
             }
 
         }
@@ -58,6 +58,8 @@ namespace homefinderYad2
     class yad2Layer
     {
         private const string yad2Api = "http://www.yad2.co.il/ajax/Nadlan/searchMap/results.php";
+        private const int betweenWait = 60000;
+        public const int periodWait = 1200000;
         private bool firstRun = true;
         
         private List<ParameterClass> parametersCollection=null;
@@ -156,6 +158,7 @@ namespace homefinderYad2
                 dataStream.Close();
                 response.Close();
                 web = null;
+                Thread.Sleep(betweenWait);
             }
             firstRun = false;
             return result;
