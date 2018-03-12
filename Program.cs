@@ -22,7 +22,10 @@ namespace homefinderYad2
             Console.WriteLine("Continue from previous state?(y/n)");
             string answer = Console.ReadLine();
             bool useCache = answer == "y" ? true : false;
-            while (true)
+            Console.WriteLine("Check Continuesly ?(y/n)");
+            bool continous = Console.ReadLine() == "y" ? true : false;
+            bool continueLoop = true;
+            while (continueLoop)
             {
                 var newHouses = new List<homeClass>();
                 try
@@ -43,6 +46,7 @@ namespace homefinderYad2
 
                 }
                 newHouses = null;
+                continueLoop = continous;
                 Thread.Sleep(yad2Layer.periodWait);
             }
 
@@ -64,7 +68,7 @@ namespace homefinderYad2
     {
         private const string yad2Api = "http://www.yad2.co.il/ajax/Nadlan/searchMap/results.php";
         private const int betweenWait = 60000;
-        public const int periodWait = 1200000;
+        public const int periodWait = 3600000;
         private bool firstRun = true;
         private const string tmpFile="yad2tmp.cache";
         
@@ -171,25 +175,25 @@ namespace homefinderYad2
                 web.UserAgent= "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36";
                 web.Timeout = 100000;
                 //web.Referer= @"http://www.yad2.co.il/Nadlan/rentMap.php?AreaID=&City=&HomeTypeID=&fromRooms=2.5&untilRooms=3.5&fromPrice=&untilPrice=7500&PriceType=1&FromFloor=1&ToFloor=&fromSquareMeter=65&untilSquareMeter=&EnterDate=&Info=";
-
+                Console.WriteLine("request sent. Area : " + parametersCollection.IndexOf(param) + " Time: " + DateTime.Now.ToString());
                 HttpWebResponse response = (HttpWebResponse)web.GetResponse();
-                Console.WriteLine("request sent. Area : "+parametersCollection.IndexOf(param)+" Time: "+DateTime.Now.ToString());
                 Stream dataStream = response.GetResponseStream();
                 StreamReader reader = new StreamReader(dataStream, Encoding.GetEncoding(response.CharacterSet));
                 string responseFromServer = reader.ReadToEnd();
                 var houses = parseResponse(responseFromServer);
                 Console.WriteLine(houses.Count + " houses found");
                 var newhouses = returnNewHouses(houses, parametersCollection.IndexOf(param));
-                for(int i = 0; i < newhouses.Count; i++)
-                {
-                    newhouses[i] = fillHouseValuesFromHousePage(newhouses[i]);
-                }
-                param.FilterHousesByCustomParams(ref newhouses);
+                //for(int i = 0; i < newhouses.Count; i++)
+                //{
+                //    newhouses[i] = fillHouseValuesFromHousePage(newhouses[i]);
+                //    Thread.Sleep(betweenWait);
+                //}
+                //param.FilterHousesByCustomParams(ref newhouses);
                 if (newhouses.Count > 0)
                 {
                     Console.WriteLine(newhouses.Count + " new houses found");
                 }
-                if (!(firstRun||useCache))
+                if ((!firstRun && !useCache) || useCache)
                 {
                     result.AddRange(newhouses);
                 }
