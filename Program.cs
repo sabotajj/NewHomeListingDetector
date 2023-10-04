@@ -27,7 +27,7 @@ namespace homefinderYad2
             bool continueLoop = true;
             while (continueLoop)
             {
-                var newHouses = new List<homeClass>();
+                var newHouses = new List<Home>();
                 try
                 {
                     newHouses = yad2.main(useCache);
@@ -41,7 +41,7 @@ namespace homefinderYad2
                
                 foreach (var house in newHouses)
                 {
-                    mailwrapper mailer = new mailwrapper();
+                    MailWrapper mailer = new MailWrapper();
                     mailer.sendMail(house);
 
                 }
@@ -58,7 +58,7 @@ namespace homefinderYad2
         public string parameterOwnerEmail;
         public int maxMeter = 9999;
         public int minMeter = 0;
-        public void FilterHousesByCustomParams(ref List<homeClass> houses)
+        public void FilterHousesByCustomParams(ref List<Home> houses)
         {
             houses = houses.Where(house => house.Meter <= this.maxMeter
             && house.Meter >= this.minMeter).ToList();
@@ -73,14 +73,14 @@ namespace homefinderYad2
         private const string tmpFile="yad2tmp.cache";
         
         private List<ParameterClass> parametersCollection=null;
-        private List<List<homeClass>> cache = null;
+        private List<List<Home>> cache = null;
         public yad2Layer()
         {
             buildParams();
         }
         public void readCacheFromDisk()
         {
-            cache = new List<List<homeClass>>(parametersCollection.Count);
+            cache = new List<List<Home>>(parametersCollection.Count);
             try
             {
                 string cacheString = File.ReadAllText(tmpFile);
@@ -88,7 +88,7 @@ namespace homefinderYad2
                 dynamic _cache = JsonConvert.DeserializeObject(cacheString);
                 foreach (Newtonsoft.Json.Linq.JArray singleCache in _cache)
                 {
-                    cache.Add(singleCache.ToObject<List<homeClass>>());
+                    cache.Add(singleCache.ToObject<List<Home>>());
                 }
             }
             catch (Exception ex)
@@ -97,8 +97,8 @@ namespace homefinderYad2
             }
             if (cache == null || cache.Count != parametersCollection.Count)
             {
-                cache = new List<List<homeClass>>(parametersCollection.Count);
-                parametersCollection.ForEach(param => cache.Add(new List<homeClass>()));
+                cache = new List<List<Home>>(parametersCollection.Count);
+                parametersCollection.ForEach(param => cache.Add(new List<Home>()));
             }
 
 
@@ -108,9 +108,9 @@ namespace homefinderYad2
             string cacheString = JsonConvert.SerializeObject(cache);
             File.WriteAllText(tmpFile, cacheString);
         }
-        public string getHouseUrl(homeClass home)
+        public string getHouseUrl(Home home)
         {
-            if (!home.isTivuh)
+            if (!home.IsAgency)
             {
                 return "http://www.yad2.co.il/Nadlan/rent_info.php?NadlanID=" + home.PostNo;
             }
@@ -137,7 +137,7 @@ namespace homefinderYad2
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return (DateTime.UtcNow - epoch).TotalSeconds*1000;
         }
-        private homeClass fillHouseValuesFromHousePage(homeClass home)
+        private Home fillHouseValuesFromHousePage(Home home)
         {
             var web = new WebClient();
             web.Headers.Add(HttpRequestHeader.AcceptLanguage, "en-US,en;q=0.8,tr;q=0.6,he;q=0.4");
@@ -158,9 +158,9 @@ namespace homefinderYad2
 
         }
         
-        public List<homeClass> main(bool useCache = false)
+        public List<Home> main(bool useCache = false)
         {
-            var result = new List<homeClass>();
+            var result = new List<Home>();
             if (useCache)
             {
                 this.readCacheFromDisk();
@@ -182,7 +182,7 @@ namespace homefinderYad2
                 string responseFromServer = reader.ReadToEnd();
                 var houses = parseResponse(responseFromServer);
                 Console.WriteLine(houses.Count + " houses found");
-                var newhouses = returnNewHouses(houses, parametersCollection.IndexOf(param));
+                var newhouses = GetNewHouses(houses, parametersCollection.IndexOf(param));
                 //for(int i = 0; i < newhouses.Count; i++)
                 //{
                 //    newhouses[i] = fillHouseValuesFromHousePage(newhouses[i]);
@@ -208,34 +208,34 @@ namespace homefinderYad2
             return result;
             
         }
-        private List<homeClass> parseResponse(string response)
+        private List<Home> parseResponse(string response)
         {
-            List<homeClass> resultList = new List<homeClass>();
+            List<Home> resultList = new List<Home>();
             dynamic result = JsonConvert.DeserializeObject(response);
             foreach (var group in result.groups)
             {
                 foreach (var home in group.mador[0].results)
                 {
-                    homeClass newhome = new homeClass();
+                    Home newhome = new Home();
                     newhome.City = home.City;
                     newhome.HomeNo = home.HomeNum;
                     newhome.PostNo = home.NadlanID;
                     newhome.Neighborhood = home.Neighborhood;
                     newhome.PostDate = DateTime.Parse(home.StartDate.Value);
-                    newhome.isTivuh = false;
+                    newhome.IsAgency = false;
                     newhome.Price = home.Price;
                     newhome.Street = home.Street;
                     resultList.Add(newhome);
                 }
                 foreach (var home in group.mador[1].results)
                 {
-                    homeClass newhome = new homeClass();
+                    Home newhome = new Home();
                     newhome.City = home.City;
                     newhome.HomeNo = home.HomeNum;
                     newhome.PostNo = home.NadlanID;
                     newhome.Neighborhood = home.Neighborhood;
                     newhome.PostDate = DateTime.Parse(home.StartDate.Value);
-                    newhome.isTivuh = true;
+                    newhome.IsAgency = true;
                     newhome.Price = home.Price;
                     newhome.Street = home.Street;
                     resultList.Add(newhome);
@@ -244,9 +244,9 @@ namespace homefinderYad2
             result = null;
             return resultList;
         }
-        private List<homeClass> returnNewHouses(List<homeClass> houses,int paramIndex)
+        private List<Home> GetNewHouses(List<Home> houses,int paramIndex)
         {
-            List<homeClass> result = new List<homeClass>();
+            List<Home> result = new List<Home>();
             if(cache[paramIndex].Count == 0)
             {
 
@@ -254,12 +254,12 @@ namespace homefinderYad2
             }
             else
             {
-                result = houses.Where(x => !cache[paramIndex].Any(y => x.PostNo == y.PostNo)).ToList<homeClass>();
+                result = houses.Where(x => !cache[paramIndex].Any(y => x.PostNo == y.PostNo)).ToList<Home>();
                 if (result.Count > 0)
                 {
                     cache[paramIndex].AddRange(result);
                 }
-                var updatedHouses = houses.Where(x => replaceRecordInCacheIfNeed(x,paramIndex)).ToList();
+                var updatedHouses = houses.Where(x => RefreshDataInCache(x,paramIndex)).ToList();
                 if (updatedHouses.Count > 0) {
                     result.AddRange(updatedHouses);
                 }
@@ -268,7 +268,13 @@ namespace homefinderYad2
             }
             return result;
         }
-        private bool replaceRecordInCacheIfNeed(homeClass newHouse,int paramIndex)
+        /// <summary>
+        /// Refreshes the cache
+        /// </summary>
+        /// <param name="newHouse"></param>
+        /// <param name="paramIndex"></param>
+        /// <returns>Returns true if changes exists</returns>
+        private bool RefreshDataInCache(Home newHouse,int paramIndex)
         {
             var oldHouses = cache[paramIndex].Where(y => (y.PostNo == newHouse.PostNo) && (y.Street != newHouse.Street)).ToList();
             
@@ -281,71 +287,14 @@ namespace homefinderYad2
             return oldHouseCount > 0;
         }
     }
-    public class homeClass
+    
+    class EqualityParity : IEqualityComparer<Home>
     {
-        public string City;
-        public string HomeNo;
-        public string PostNo;
-        public string Price;
-        public string Street;
-        public string Neighborhood;
-        public int Meter;
-        public DateTime PostDate;
-        public bool isTivuh;
-    }
-    public class mailwrapper
-    {
-        private SmtpClient _mailer;
-
-        public string subject = "";
-        public string to = "ketty.slonimsky@gmail.com,sabih.erdemanar@gmail.com";
-        public string host = "smtp.gmail.com";
-        public string username = "berta.system";
-        public string password = "BertaSystem123";
-        public string from = "berta.system@gmail.com";
-        public mailwrapper()
-        {
-            bool isGmail = host.Contains("gmail");
-            _mailer = new SmtpClient(host, isGmail ? 587 : 443);
-            _mailer.Credentials = new NetworkCredential(username, password);
-            if (isGmail)
-            {
-                _mailer.EnableSsl = true;
-            }
-        }
-        public mailwrapper(string smtpaddress)
-        {
-            _mailer = new SmtpClient(smtpaddress);
-        }
-        public mailwrapper(string smtpaddress, int port) : this(smtpaddress)
-        {
-            _mailer.Port = port;
-        }
-        public mailwrapper(string smtpaddress, int port, string username, string password) : this(smtpaddress, port)
-        {
-            _mailer.Credentials = new NetworkCredential(username, password);
-        }
-        public void sendMail(homeClass home)
-        {
-            string body = createBody(home);
-            string subject = "new home in " + home.Neighborhood;
-            MailMessage msg = new MailMessage(from, to, subject, body);
-            msg.IsBodyHtml = true;
-            
-            _mailer.Send(msg);
-        }
-        private string createBody(homeClass home)
-        {
-                return @"new home in " + home.Neighborhood + ".Address:" + home.Street + ".Price:" + home.Price + ". Link:" + new yad2Layer().getHouseUrl(home);
-        }
-    }
-    class EqualityParity : IEqualityComparer<homeClass>
-    {
-        public bool Equals(homeClass x, homeClass y)
+        public bool Equals(Home x, Home y)
         {
             return this.GetHashCode(x) == this.GetHashCode(y);
         }
-        public int GetHashCode(homeClass x)
+        public int GetHashCode(Home x)
         {
             return int.Parse(x.PostNo);
         }
