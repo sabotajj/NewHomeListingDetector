@@ -288,17 +288,6 @@ namespace homefinderYad2
         }
     }
     
-    class EqualityParity : IEqualityComparer<Home>
-    {
-        public bool Equals(Home x, Home y)
-        {
-            return this.GetHashCode(x) == this.GetHashCode(y);
-        }
-        public int GetHashCode(Home x)
-        {
-            return int.Parse(x.PostNo);
-        }
-
-    }
+    
 }
 
